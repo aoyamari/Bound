@@ -72,7 +72,7 @@ HACKATHON.md                # Submit checklist + demo script
 
 ### Prerequisites
 
-- Rust toolchain (MSRV compatible with `near-sdk` **5.17.x**; newer SDK may need newer Rust)
+- Rust **1.88+** (repo includes `rust-toolchain.toml`; `rustup` will auto-select)
 - `cargo`
 - Node 18+ for the demo script (later)
 
