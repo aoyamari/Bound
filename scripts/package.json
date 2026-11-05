@@ -1,0 +1,13 @@
+{
+  "name": "agent-guardian-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo agent skeleton for On-chain Agent Guardian",
+  "scripts": {
+    "demo": "node demo-agent.mjs"
+  },
+  "dependencies": {
+    "near-api-js": "^5.0.1"
+  }
+}

@@ -1,0 +1,22 @@
+# Rust
+**/target/
+**/*.wasm
+
+# Node
+**/node_modules/
+scripts/package-lock.json
+scripts/yarn.lock
+scripts/.env
+scripts/.env.*
+!scripts/.env.example
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Secrets
+*.pem
+*-key.json
+credentials/
