@@ -120,7 +120,7 @@ near contract call-function as-read-only guardian.bound-aoyamari.testnet get_pol
 near account list-keys agent.bound-aoyamari.testnet network-config testnet now
 ```
 
-Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters and `docs/DEPLOY.md` for reproducible deployment. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) using a static `gh-pages` branch, no Actions workflow permission needed. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
+Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters. `docs/DEPLOY.md` records the deploy commands and the bytecode check: the live wasm matches the contract sources from `469b74b` through `31ab724` only when dependency paths use `/home/box/.cargo`, and that wasm's NEP-330 `build_info` is null. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) from the static `gh-pages` branch. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
 
 ## Do X → see Y (AI screener / judges)
 
@@ -145,10 +145,12 @@ On every `spend(receiver, amount, memo)`:
 2. `receiver` ∈ whitelist
 3. `amount ≤ max_per_tx`
 4. `spent_today + amount ≤ daily_limit` (after rolling UTC day bucket)
-5. Contract balance ≥ `amount`
+5. Spendable balance ≥ `amount`. Spendable balance is `account_balance` minus the storage reserve (`storage_usage * storage_byte_cost`). Validator `account_locked_balance` is not part of `account_balance`.
 6. Then transfer + bump `spent_today`
 
-Day bucket: `floor(block_timestamp_ns / 86_400_000_000_000)`.
+Day bucket: `floor(block_timestamp_ns / 86_400_000_000_000)`. `get_spent_today`, `get_day_bucket`, and `can_spend` use the current bucket immediately. Stored `spent_today` resets on the next `spend` or `set_policy`.
+
+`deposit` is a permissionless payable credit. A plain NEAR transfer to the contract account also adds to the treasury. Admin writes and `withdraw` require the predecessor to be the owner. `withdraw` ignores pause and the agent caps. `spend` applies the same policy to every caller; a Function Call key scoped to `spend` is configured on the agent account, not inside this contract.
 
 ---
 

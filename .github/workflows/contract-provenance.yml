@@ -1,0 +1,57 @@
+# Records a wasm build for one git commit. Does not deploy, publish Pages,
+# or compare the artifact to guardian.bound-aoyamari.testnet.
+name: Contract build provenance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - contracts/agent-guardian/**
+      - rust-toolchain.toml
+      - scripts/contract-provenance.py
+      - .github/workflows/contract-provenance.yml
+
+permissions:
+  contents: read
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@1.88.0
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Build release wasm with commit snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          snapshot="$(git rev-parse HEAD)"
+          export CARGO_INCREMENTAL=0
+          export CARGO_HOME="${RUNNER_TEMP}/cargo-home"
+          # Fixed prefixes so the hash does not follow the runner's home directory.
+          # This is intentionally not the historical /home/box/.cargo path.
+          export RUSTFLAGS="--remap-path-prefix=${CARGO_HOME}=/cargo-home --remap-path-prefix=${GITHUB_WORKSPACE}=/workspace"
+          export NEP330_BUILD_INFO_BUILD_ENVIRONMENT="rustc 1.88.0"
+          export NEP330_BUILD_INFO_BUILD_COMMAND='["cargo","build","--release","--locked","--target","wasm32-unknown-unknown","--manifest-path","contracts/agent-guardian/Cargo.toml"]'
+          export NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT="${snapshot}"
+          export NEP330_BUILD_INFO_CONTRACT_PATH="contracts/agent-guardian"
+          cargo build --release --locked --target wasm32-unknown-unknown --manifest-path contracts/agent-guardian/Cargo.toml
+
+      - name: Write provenance JSON
+        run: |
+          python3 scripts/contract-provenance.py \
+            contracts/agent-guardian/target/wasm32-unknown-unknown/release/agent_guardian.wasm \
+            --output provenance.json \
+            --require-snapshot
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-guardian-provenance-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            contracts/agent-guardian/target/wasm32-unknown-unknown/release/agent_guardian.wasm
+            provenance.json

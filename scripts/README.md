@@ -20,6 +20,6 @@ Expected flow: `SpendAllowed` (0.1), `SpendRejected / over_max_per_tx` (0.3), `S
 
 After owner pauses: `npm run demo -- --paused-check`. For just the FC-key negative proof: `npm run demo -- --negative-only`.
 
-Requires `near-api-js`. Unit tests: `cargo test --manifest-path ../contracts/agent-guardian/Cargo.toml`. Reproducible accounts/deployment: root README and `DEV.md`.
+Requires `near-api-js`. Unit tests: `cargo test --manifest-path ../contracts/agent-guardian/Cargo.toml`. Account setup is in the root README and `DEV.md`. Wasm hashing, without deploying, is `python3 contract-provenance.py --self-test` and `docs/DEPLOY.md`.
 
 Immutable account budget is separate: FC allowance (if set) applies to gas, not the treasury limits. Demo keys are testnet-only; do not give an AI production full-access credentials.
