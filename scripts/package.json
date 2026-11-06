@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Demo agent skeleton for On-chain Agent Guardian",
+  "description": "Demo agent skeleton for Bound",
   "scripts": {
     "demo": "node demo-agent.mjs"
   },

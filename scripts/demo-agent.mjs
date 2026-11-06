@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * On-chain Agent Guardian — demo agent skeleton
+ * Bound — demo agent skeleton
  *
  * Goal: call guardian.spend with an account that should ONLY have a
  * Function Call access key scoped to method `spend`.
@@ -98,7 +98,7 @@ async function scenario(name, fn) {
 }
 
 async function main() {
-  console.log('On-chain Agent Guardian — demo agent');
+  console.log('Bound — demo agent');
   console.log('Network:', CONFIG.network);
   requireConfig();
   console.log('Contract:', CONFIG.contract);

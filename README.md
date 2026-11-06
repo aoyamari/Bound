@@ -1,10 +1,12 @@
-# On-chain Agent Guardian
+# Bound
+
+**Autonomy, within bounds.**
 
 **Give agents a budget, not a blank check — enforced on-chain, verifiable by anyone.**
 
-AI agents on NEAR need to spend money. Giving them a full-access key is reckless; opaque off-chain policy is hard to audit. **On-chain Agent Guardian** keeps the treasury in a contract and lets agents call only `spend`, with **public** limits and whitelist enforced atomically every time.
+AI agents on NEAR need to spend money. Giving them a full-access key is reckless; opaque off-chain policy is hard to audit. **Bound** keeps the treasury in a contract and lets agents call only `spend`, with **public** limits and whitelist enforced atomically every time.
 
-**Hackathon tracks:** `security` · `agents`  
+**Hackathon tracks:** `security` · `agents`
 **Event:** [NEAR HACKATHON](https://nearhackathon.com/) (submit by **14 Nov 2026, 23:59 UTC**)
 
 > Honest claim: this is **not** “more secure than OutLayer.” OutLayer isolates keys in TEE. We make **budgets transparent and exact** for open treasuries, DAOs, and builders who want policy anyone can verify on-chain.
@@ -19,7 +21,7 @@ AI agents on NEAR need to spend money. Giving them a full-access key is reckless
 
 ## Differentiation vs OutLayer
 
-| | **OutLayer** | **On-chain Agent Guardian** |
+| | **OutLayer** | **Bound** |
 |---|---|---|
 | Agent key material | No chain key (API → TEE signs) | Function Call key scoped to `spend` only |
 | Policy visibility | Encrypted; evaluated in TEE | **Public on-chain** (`get_policy`) |
@@ -28,7 +30,7 @@ AI agents on NEAR need to spend money. Giving them a full-access key is reckless
 | Integration | Custody / API product | **Composable** — any account with FC key can call |
 | Best fit | Production multi-chain custody | Open treasuries, hackathon agents, auditable demos |
 
-Complementary, not competitive: OutLayer isolates keys; Guardian makes budgets verifiable.
+Complementary, not competitive: OutLayer isolates keys; Bound makes budgets verifiable.
 
 ---
 

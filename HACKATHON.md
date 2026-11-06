@@ -1,8 +1,8 @@
 # NEAR HACKATHON — submit notes
 
-**Project:** On-chain Agent Guardian  
-**Tracks (pick both if form allows):** `security` + `agents`  
-**Deadline:** 14 Nov 2026 · 23:59 UTC  
+**Project:** Bound
+**Tracks (pick both if form allows):** `security` + `agents`
+**Deadline:** 14 Nov 2026 · 23:59 UTC
 **Site:** https://nearhackathon.com/
 
 ## Positioning one-liner

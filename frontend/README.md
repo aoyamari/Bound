@@ -1,6 +1,6 @@
 # Frontend (placeholder)
 
-Minimal owner UI for On-chain Agent Guardian. Not implemented yet — build this after the contract tests are green and testnet deploy works.
+Minimal owner UI for Bound. Not implemented yet — build this after the contract tests are green and testnet deploy works.
 
 ## What the UI should do
 

@@ -2,10 +2,10 @@
 name = "agent-guardian"
 version = "0.1.0"
 edition = "2021"
-authors = ["On-chain Agent Guardian"]
+authors = ["Bound"]
 license = "MIT"
 description = "Transparent on-chain spending policy for AI agents on NEAR"
-repository = "https://github.com/example/onchain-agent-guardian"
+repository = "https://github.com/aoyamari/bound"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

@@ -1,4 +1,4 @@
-//! On-chain Agent Guardian — exact, public spending policy for AI agents on NEAR.
+//! Bound — exact, public spending policy for AI agents on NEAR.
 //!
 //! Funds live in this contract. Agents should only hold a Function Call access key
 //! scoped to `spend`. Policy (limits + whitelist) is readable on-chain by anyone.
