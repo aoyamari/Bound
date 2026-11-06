@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Bound"]
 license = "MIT"
 description = "Transparent on-chain spending policy for AI agents on NEAR"
-repository = "https://github.com/aoyamari/bound"
+repository = "https://github.com/aoyamari/Bound"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
