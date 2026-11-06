@@ -92,14 +92,40 @@ export function canSpend(receiver: string, amountYocto: string): Promise<CanSpen
   })
 }
 
+function decimalString(near: number | string): string {
+  if (typeof near === 'number') {
+    if (!Number.isFinite(near) || near < 0) {
+      throw new Error('NEAR amount must be a finite non-negative number')
+    }
+    const rendered = near.toString()
+    if (/[eE]/.test(rendered)) {
+      throw new Error('pass this NEAR amount as a decimal string, for example "0.1"')
+    }
+    return rendered
+  }
+  return near.trim()
+}
+
+/** Exact yoctoNEAR. Fractional digits past 24 are rejected rather than rounded. */
 export function nearToYocto(near: number | string): string {
-  const s = String(near)
-  const [whole, frac = ''] = s.split('.')
-  const fracPadded = (frac + '0'.repeat(24)).slice(0, 24)
-  return (BigInt(whole || '0') * YOCTO_PER_NEAR + BigInt(fracPadded || '0')).toString()
+  const s = decimalString(near)
+  const match = /^(0|[1-9]\d*)(?:\.(\d+))?$/.exec(s)
+  if (!match) {
+    throw new Error('NEAR amount must be a base-10 decimal string, for example "0.1"')
+  }
+  const whole = match[1]
+  const frac = match[2] ?? ''
+  if (frac.length > 24) {
+    throw new Error('NEAR amount has more than 24 decimal places')
+  }
+  const fracPadded = frac.padEnd(24, '0')
+  return (BigInt(whole) * YOCTO_PER_NEAR + BigInt(fracPadded)).toString()
 }
 
 export function yoctoToNear(yocto: string | number | bigint, digits = 4): string {
+  if (typeof yocto === 'number' && !Number.isSafeInteger(yocto)) {
+    throw new Error('pass yoctoNEAR as a string or bigint')
+  }
   const v = BigInt(yocto)
   const whole = v / YOCTO_PER_NEAR
   const frac = v % YOCTO_PER_NEAR

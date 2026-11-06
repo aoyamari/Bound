@@ -145,10 +145,12 @@ On every `spend(receiver, amount, memo)`:
 2. `receiver` ∈ whitelist
 3. `amount ≤ max_per_tx`
 4. `spent_today + amount ≤ daily_limit` (after rolling UTC day bucket)
-5. Contract balance ≥ `amount`
+5. Spendable balance ≥ `amount`. Spendable balance is `account_balance` minus the storage reserve (`storage_usage * storage_byte_cost`). Validator `account_locked_balance` is not part of `account_balance`.
 6. Then transfer + bump `spent_today`
 
-Day bucket: `floor(block_timestamp_ns / 86_400_000_000_000)`.
+Day bucket: `floor(block_timestamp_ns / 86_400_000_000_000)`. `get_spent_today`, `get_day_bucket`, and `can_spend` use the current bucket immediately. Stored `spent_today` resets on the next `spend` or `set_policy`.
+
+`deposit` is a permissionless payable credit. A plain NEAR transfer to the contract account also adds to the treasury. Admin writes and `withdraw` require the predecessor to be the owner. `withdraw` ignores pause and the agent caps. `spend` applies the same policy to every caller; a Function Call key scoped to `spend` is configured on the agent account, not inside this contract.
 
 ---
 

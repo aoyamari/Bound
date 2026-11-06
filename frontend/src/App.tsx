@@ -7,6 +7,7 @@ import {
   getPolicy,
   getSpentToday,
   nearToYocto,
+  yoctoToNear,
   type CanSpendView,
   type PolicyView,
 } from './near'
@@ -17,7 +18,7 @@ type Scenario = {
   id: string
   title: string
   receiver: string
-  amountNear: number
+  amountNear: string
   blurb: string
 }
 
@@ -26,24 +27,33 @@ const SCENARIOS: Scenario[] = [
     id: 'ok',
     title: 'Allowed payment',
     receiver: 'vendor.bound-aoyamari.testnet',
-    amountNear: 0.1,
+    amountNear: '0.1',
     blurb: 'whitelisted · under max',
   },
   {
     id: 'over',
     title: 'Over max / tx',
     receiver: 'vendor.bound-aoyamari.testnet',
-    amountNear: 0.3,
-    blurb: '0.3 Ⓝ > max_per_tx 0.25 Ⓝ',
+    amountNear: '0.3',
+    blurb: '0.3 Ⓝ compared with live max_per_tx',
   },
   {
     id: 'unlisted',
     title: 'Unlisted payee',
     receiver: 'near-examples.testnet',
-    amountNear: 0.1,
+    amountNear: '0.1',
     blurb: 'not on whitelist',
   },
 ]
+
+function scenarioBlurb(scenario: Scenario, policy: PolicyView | null): string {
+  if (scenario.id !== 'over') return scenario.blurb
+  if (!policy) return scenario.blurb
+  const probe = BigInt(nearToYocto(scenario.amountNear))
+  const max = BigInt(policy.max_per_tx)
+  const relation = probe > max ? '>' : probe === max ? '=' : '<'
+  return `${scenario.amountNear} Ⓝ ${relation} live max_per_tx ${yoctoToNear(policy.max_per_tx, 4)} Ⓝ`
+}
 
 type SimResult = {
   scenario: Scenario
@@ -202,6 +212,13 @@ export default function App() {
               </a>
               . Nothing is signed or transferred.
             </p>
+            {policy?.paused && (
+              <p className="idle-hint">
+                Guardian is paused. <code className="mono">can_spend</code> returns{' '}
+                <code className="mono">paused</code> before whitelist, caps, and balance. Owner
+                withdraw stays available.
+              </p>
+            )}
             <div className="scenarios">
               {SCENARIOS.map((s) => (
                 <button
@@ -216,7 +233,7 @@ export default function App() {
                     {s.amountNear} Ⓝ → {s.receiver}
                   </div>
                   <div className="detail" style={{ marginTop: 4 }}>
-                    {s.blurb}
+                    {scenarioBlurb(s, policy)}
                   </div>
                 </button>
               ))}
@@ -339,7 +356,10 @@ function Architecture() {
         <div className="arch-node">
           <div className="kicker">01 · Agent</div>
           <h3>Scoped FC key</h3>
-          <p>Can call guardian methods only. Cannot Transfer NEAR at the protocol level.</p>
+          <p>
+            The demo key may call <code className="mono">spend</code> only. A Function Call key
+            cannot Transfer NEAR at the protocol level; this contract does not check key type.
+          </p>
         </div>
         <div className="arch-node accent">
           <div className="kicker">02 · Guardian</div>

@@ -86,7 +86,26 @@ near contract call-function as-transaction guardian.YOUR_NAME.testnet unpause js
 
 ## Storage & test notes
 
-Current contract has no unit-test withdrawal check; coverage is explicitly not a comprehensive audit. UTC bucket increments lazily on next mutation. No owner-key rotation in MVP; production requires deliberate owner transfer/multisig controls. Owner can withdraw outside agent policy; that is intentional. No Off-chain or TEE claims are made.
+Unit tests cover both ways the contract moves NEAR:
+
+- `spend` creates a transfer receipt for the exact yocto amount when the policy allows. A rejected `spend` (pause, zero, whitelist, per-tx cap, daily cap, spendable balance) leaves `spent_today` unchanged and creates no transfer.
+- `withdraw` is owner-only, rejects zero, rejects amounts above the spendable balance, and still works while paused. The receipt pays the owner and does not consume the daily cap.
+- Non-owners cannot `set_policy`, whitelist add/remove, `pause`, `unpause`, or `withdraw`.
+- `deposit` is not owner-gated. It only accepts a non-zero attached deposit.
+- Amounts are integer yoctoNEAR. Views report the current UTC bucket immediately; the stored bucket rolls on the next `spend` or `set_policy`.
+- Spendable balance reserves `storage_usage * 10^19` yoctoNEAR. That constant is `env::storage_byte_cost()` from near-sdk 5.17.2.
+
+This is not a comprehensive audit. There is no owner-key rotation in the MVP. A full-access key on the guardian account can still change code or transfer NEAR outside these methods. `spend` does not restrict the predecessor, so any account can pay a whitelisted receiver up to the caps. No off-chain or TEE claims are made.
+
+The tests do not prove that deployed testnet bytecode matches this source. Optional read-only check, with no key and no deploy:
+
+```bash
+curl -s https://rpc.testnet.near.org -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":"bound-view-code","method":"query","params":{"request_type":"view_code","finality":"final","account_id":"guardian.bound-aoyamari.testnet"}}' \
+  | jq -r '.result.hash'
+```
+
+`result.hash` is the base58 sha256 of the wasm. Compare it with a local `cargo build --release --target wasm32-unknown-unknown` artifact before any future deploy. Agent key scope is also off-chain; `near account list-keys agent.bound-aoyamari.testnet network-config testnet now` is the matching read-only check.
 
 ### Frontend
 
