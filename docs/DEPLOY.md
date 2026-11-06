@@ -99,15 +99,17 @@ This is not a comprehensive audit. There is no owner-key rotation in the MVP. A 
 
 ## Bytecode provenance
 
-Live `guardian.bound-aoyamari.testnet` `view_code` hash is base58 `6SS3z8n8jBE2Co4pLGF6c24tAaWbi145PEtdvbZcLTh`. That is the standard base58 of SHA256 `0164a8f67c6087542cff3dfbb7404e95c07c971e05fb16adf245f386ec2046b0` (32 bytes, not base58check). The string `3882a4N4K5525P3Q7663C23U4A9BJ13375UDWB9C78H` does not encode that digest.
+### First wasm
 
-A read-only `contract_source_metadata` call returns:
+The first `guardian.bound-aoyamari.testnet` `view_code` hash was base58 `6SS3z8n8jBE2Co4pLGF6c24tAaWbi145PEtdvbZcLTh`, SHA256 `0164a8f67c6087542cff3dfbb7404e95c07c971e05fb16adf245f386ec2046b0` (standard base58 of the raw digest, not base58check). The string `3882a4N4K5525P3Q7663C23U4A9BJ13375UDWB9C78H` does not encode that digest. That wasm is no longer the account code.
+
+On that first wasm, and still after the upgrade below, a read-only `contract_source_metadata` call returns:
 
 ```json
 {"version":"0.1.0","link":"https://github.com/aoyamari/Bound","standards":[{"standard":"nep330","version":"1.3.0"}],"build_info":null}
 ```
 
-`build_info` is null, so the wasm does not name a git commit. The link matches `Cargo.toml` `repository` from `469b74b` through `31ab724`. Those commits, including the documented deploy commit `05859e9`, have the same `lib.rs`, `Cargo.toml`, `Cargo.lock`, and `rust-toolchain.toml`. Earlier commits embed a different link (`https://github.com/aoyamari/bound` at `ec52f6a`, `https://github.com/example/onchain-agent-guardian` at `21f5987`) and are not this wasm.
+`build_info` is null, so the wasm does not name a git commit. The link matches `Cargo.toml` `repository` from `469b74b` through `31ab724`. Those commits, including the documented deploy commit `05859e9`, have the same `lib.rs`, `Cargo.toml`, `Cargo.lock`, and `rust-toolchain.toml`. Earlier commits embed a different link (`https://github.com/aoyamari/bound` at `ec52f6a`, `https://github.com/example/onchain-agent-guardian` at `21f5987`) and are not that first wasm.
 
 Rust 1.88.0 (`6b00bc3880198600130e1cf62b8f8a93494488cc`, LLVM 20.1.5), command:
 
@@ -118,9 +120,17 @@ RUSTFLAGS='--remap-path-prefix=/usr/local/cargo=/home/box/.cargo' \
 
 produced a 255,267-byte wasm whose SHA256 is `0164a8f67c6087542cff3dfbb7404e95c07c971e05fb16adf245f386ec2046b0`. The same command without that remap, with this machine's cargo home `/usr/local/cargo`, produced SHA256 `7c5d346b89f53d5f4023970520861f0f50e688d8a1e1817cbdcccb431fb67ab2`. The two files are the same length and differ only in 20 copies of that cargo-home prefix inside panic paths. No contract build workflow existed; `.github/workflows/pages.yml` at `cbca672` built the frontend only and was removed in `44de228`. Deploy transaction `GdqpWg8PvXefyA3Y4ShMo2d73fxFp5CaqovCs6MBWrmg` does not store a commit id.
 
-This identifies the deployed source as that identical contract tree, not one commit inside it. It does not mean a later source change, another rustc, or a build with `NEP330_BUILD_INFO_*` set will match.
+This identifies the first deployed source as that identical contract tree, not one commit inside it. The compiler note above is only for that reproduction. It does not assign a compiler to any other local wasm, and it does not mean a later source change or a build with `NEP330_BUILD_INFO_*` set will match.
 
-`scripts/contract-provenance.py` prints SHA256, base58, and the embedded NEP-330 JSON for a wasm. `.github/workflows/contract-provenance.yml` builds one commit with `build_info.source_code_snapshot` set to `HEAD` and cargo/workspace paths remapped to `/cargo-home` and `/workspace`. That artifact is for a future deploy. It is not the current testnet wasm, and the workflow does not deploy or publish Pages.
+`scripts/contract-provenance.py` prints SHA256, base58, and the embedded NEP-330 JSON for a wasm. Its encoder self-test still uses the first digest above; that pair is not the current code hash. `.github/workflows/contract-provenance.yml` is an optional later build: it sets `NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT` to `HEAD` and remaps paths to `/cargo-home` and `/workspace`. It does not deploy or publish Pages. This upgrade did not use those variables (`build_info` is null) and this follow-up does not change the contract.
+
+### Second wasm (current)
+
+Upgrade deploy [`Cb6saE7z...`](https://explorer.testnet.near.org/transactions/Cb6saE7zu8kRQUYTqqhjgmNpzooTTLJsov7FEvy4HCwH) from main `9e585567f69163f1e9bbbc4d53e35e9a9901983c`, one `DeployContract` action and no init call. Read-only `view_code` matches base58 `FagUutviDcjAKZY6Crv8Aj7H3T41jkqBFhuH1kCGWf3m`, SHA256 `d8a46cdd310339fb0c9654eacdc7879894e0663038a64039e684b1d72d733110`, 255,688 bytes. No compiler version is claimed here for that file.
+
+State survived the upgrade. Read-only `get_policy`: owner `bound-aoyamari.testnet`, max 0.25 NEAR, daily 0.5 NEAR, not paused, whitelist only `vendor.bound-aoyamari.testnet`. On UTC day bucket `20763` (2026-11-06), `get_spent_today` is 0.5 NEAR, so this wasm has taken no new positive payment. `can_spend`: vendor 0.3 NEAR `over_max_per_tx`; `near-examples.testnet` 0.1 NEAR `not_whitelisted`; vendor 0.1 NEAR `over_daily_limit`. Receipt-level over-max and non-whitelist spends on this wasm are still pending because the demo script refuses when the day is full.
+
+`view_access_key_list` for `agent.bound-aoyamari.testnet`: one key, `ed25519:7MMphMSA1J6R9w9kWL2RJmj3nvC8P3T32dDYy2TyExA3`, Function Call, receiver `guardian.bound-aoyamari.testnet`, method `spend` only. A direct transfer with that key was rejected `AccessKeyRequiresFullAccessActionError` and was not repeated here. Pause proof: [`7uUR1gfa...`](https://explorer.testnet.near.org/transactions/7uUR1gfap394ABxjmsieZgEQWXa31zMSCgkoi1MVnsF5), agent rejection [`DBoVGpNm...`](https://explorer.testnet.near.org/transactions/DBoVGpNmUkLBX4M7Xars3JtmUuw9gASv5RMkeG1H3EEe), unpause [`G7HnvG3f...`](https://explorer.testnet.near.org/transactions/G7HnvG3fezT7jeWuzAWaAWn2EVw4Yx3JFumntZ8TZaD4).
 
 Optional read-only checks, with no key and no transaction:
 
