@@ -42,7 +42,7 @@ flowchart TD
   Agent["AI agent (FC key → spend only)"] -->|spend receiver amount memo| G
   G -->|policy OK| Transfer["Promise.transfer NEAR"]
   G -->|policy fail| Reject["Log SpendRejected reason"]
-  UI["Owner UI"] -->|views + admin| G
+  UI["Dashboard (read-only)"] -->|public views| G
   Public["Anyone"] -->|get_policy / can_spend| G
 ```
 
@@ -63,8 +63,8 @@ Guardian contract
 
 ```
 contracts/agent-guardian/   # Rust near-sdk contract + unit tests
-scripts/                    # Live testnet agent + Script negative proof
-frontend/                   # Dashboard (in progress)
+scripts/                    # Live testnet agent + negative proof
+frontend/                   # Live NEAR testnet dashboard (owner wallet controls next)
 HACKATHON.md                # Submit checklist + demo script
 ```
 
@@ -76,7 +76,7 @@ HACKATHON.md                # Submit checklist + demo script
 
 - Rust **1.88+** (repo includes `rust-toolchain.toml`; `rustup` will auto-select)
 - `cargo`
-- Node 18+ for the testnet demo script
+- Node >=22.22.2 for the testnet demo script (near-api-js 7.4)
 
 ### Contract unit tests
 
@@ -101,7 +101,7 @@ cargo build --release --target wasm32-unknown-unknown
 
 ## Verified testnet proof
 
-Guardian: [`guardian.bound-aoyamari.testnet`](https://explorer.testnet.near.org/accounts/guardian.bound-aoyamari.testnet). Treasury: ~5 testnet NEAR; max **0.25 NEAR/payment**, **0.5 NEAR/day**; whitelisted vendor `vendor.bound-aoyamari.testnet`.
+Guardian: [`guardian.bound-aoyamari.testnet`](https://explorer.testnet.near.org/accounts/guardian.bound-aoyamari.testnet). Initially funded with 5 testnet NEAR; max **0.25 NEAR/payment**, **0.5 NEAR/day**; whitelisted vendor `vendor.bound-aoyamari.testnet`.
 
 The agent's only key is allowed to call `spend`; the bootstrap full-access key was removed. All facts and setup details: [`DEV.md`](DEV.md).
 
@@ -111,7 +111,7 @@ The agent's only key is allowed to call `spend`; the bootstrap full-access key w
 | 0.3 NEAR exceeds cap | `SpendRejected: over_max_per_tx` | [Open](https://explorer.testnet.near.org/transactions/B8p9RA7zqgARfrJ6g1k1mrPP1Mx63urtPfJ3po6V1Z4x) |
 | Unwhitelisted receiver | `SpendRejected: not_whitelisted` | [Open](https://explorer.testnet.near.org/transactions/CbaJYocRDNseff9iAtpchbtD8o6pcy6WvHQxssL3Mbn9) |
 
-Rejected attempts left `spent_today` unchanged at its cumulative 0.2 NEAR after this demo (one earlier allowed 0.1 payment explains the first half). `scripts/demo-agent.mjs` measures daily spending before/after to repeat this check. The negative direct-transfer test produced `RequiresFullAccess`.
+Rejected attempts left `spent_today` unchanged at its cumulative 0.2 NEAR after this demo (one earlier allowed 0.1 payment explains the first half). `scripts/demo-agent.mjs` measures daily spending before/after to repeat this check. The negative direct-transfer test is rejected as `RequiresFullAccess` (SDK v7: `AccessKeyRequiresFullAccessActionError`).
 
 ### Live policy read
 
@@ -120,7 +120,7 @@ near contract call-function as-read-only guardian.bound-aoyamari.testnet get_pol
 near account list-keys agent.bound-aoyamari.testnet network-config testnet now
 ```
 
-Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for reproducible deployment. Frontend work is in `frontend/`.
+Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters and `docs/DEPLOY.md` for reproducible deployment. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) using a static `gh-pages` branch, no Actions workflow permission needed. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
 
 ## Do X → see Y (AI screener / judges)
 

@@ -4,8 +4,8 @@ Polished read-only demo UI for **Bound** — *Autonomy, within bounds.*
 
 Talks to the live NEAR testnet guardian via public RPC only. No backend. No wallet. No keys in the browser.
 
-**Contract:** [`guardian.bound-aoyamari.testnet`](https://explorer.testnet.near.org/accounts/guardian.bound-aoyamari.testnet)  
-**RPC:** `https://rpc.testnet.near.org`  
+**Contract:** [`guardian.bound-aoyamari.testnet`](https://explorer.testnet.near.org/accounts/guardian.bound-aoyamari.testnet)
+**RPC:** `https://rpc.testnet.near.org`
 **Views used:** `get_policy`, `get_spent_today`, `can_spend`
 
 ## Run
@@ -39,3 +39,7 @@ npm run preview   # serve dist on :5173
 ## Stack
 
 React 18 + Vite + TypeScript. Raw `fetch` to NEAR JSON-RPC — no `near-api-js`, no secrets.
+
+## Publish
+
+`npm run publish` test/builds and publishes `dist` to the repository's `gh-pages` branch. Do not publish during on-chain owner-admin operations; owner controls are only through documented NEAR CLI in this MVP.

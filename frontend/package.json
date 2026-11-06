@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 5173",
-    "test": "vitest run"
+    "test": "vitest run",
+    "publish": "npm run test && npm run build && gh-pages --dist dist --branch gh-pages --message \"Publish Bound NEAR testnet dashboard\""
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -19,6 +20,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
-    "vitest": "^2.1.5"
+    "vitest": "^2.1.5",
+    "gh-pages": "^6.3.0"
   }
 }

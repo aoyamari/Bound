@@ -8,6 +8,6 @@
     "demo": "node demo-agent.mjs"
   },
   "dependencies": {
-    "near-api-js": "^5.0.1"
+    "near-api-js": "^7.4.0"
   }
 }
