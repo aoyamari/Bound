@@ -111,7 +111,7 @@ The agent's only key is allowed to call `spend`; the bootstrap full-access key w
 | 0.3 NEAR exceeds cap | `SpendRejected: over_max_per_tx` | [Open](https://explorer.testnet.near.org/transactions/B8p9RA7zqgARfrJ6g1k1mrPP1Mx63urtPfJ3po6V1Z4x) |
 | Unwhitelisted receiver | `SpendRejected: not_whitelisted` | [Open](https://explorer.testnet.near.org/transactions/CbaJYocRDNseff9iAtpchbtD8o6pcy6WvHQxssL3Mbn9) |
 
-Rejected attempts left `spent_today` unchanged at its cumulative 0.2 NEAR after this demo (one earlier allowed 0.1 payment explains the first half). `scripts/demo-agent.mjs` measures daily spending before/after to repeat this check. The negative direct-transfer test is rejected as `RequiresFullAccess` (SDK v7: `AccessKeyRequiresFullAccessActionError`).
+Those receipts, and the later allowed payment that filled the UTC day to 0.5 NEAR, are the first bytecode. The account was then upgraded in place (`without-init-call`) from main `9e585567`; current code hash and the preserved policy are in [`DEV.md`](DEV.md). No new positive payment has been made on the upgraded wasm: the 2026-11-06 daily cap is already 0.5 / 0.5. The negative direct-transfer test is rejected as `RequiresFullAccess` (SDK v7: `AccessKeyRequiresFullAccessActionError`).
 
 ### Live policy read
 
@@ -120,7 +120,7 @@ near contract call-function as-read-only guardian.bound-aoyamari.testnet get_pol
 near account list-keys agent.bound-aoyamari.testnet network-config testnet now
 ```
 
-Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters. `docs/DEPLOY.md` records the deploy commands and the bytecode check: the live wasm matches the contract sources from `469b74b` through `31ab724` only when dependency paths use `/home/box/.cargo`, and that wasm's NEP-330 `build_info` is null. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) from the static `gh-pages` branch. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
+Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters. `docs/DEPLOY.md` separates the first wasm (path-sensitive rebuild of `469b74b`–`31ab724`) from the current upgrade hash. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) from the static `gh-pages` branch. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
 
 ## Do X → see Y (AI screener / judges)
 

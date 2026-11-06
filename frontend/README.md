@@ -32,7 +32,7 @@ npm run preview   # serve dist on :5173
 - Three live stat cards: max per payment, daily allowance, spent today
 - Architecture / live-simulate focus toggle
 - Three preconfigured dry-runs (real `can_spend` results):
-  1. `0.1 Ⓝ` → `vendor.bound-aoyamari.testnet` (allow while that receiver is whitelisted, the guardian is unpaused, and daily headroom remains)
+  1. `0.1 Ⓝ` → `vendor.bound-aoyamari.testnet` (allow only while that receiver is whitelisted, the guardian is unpaused, and daily headroom remains; on 2026-11-06 UTC the day is already 0.5 / 0.5, so this dry-run returns `over_daily_limit`)
   2. `0.3 Ⓝ` → same vendor (card compares `0.3` with live `max_per_tx`; documented deployment is `0.25 Ⓝ`, so the view reason is `over_max_per_tx`)
   3. `0.1 Ⓝ` → `near-examples.testnet` (expect `not_whitelisted` while the guardian is unpaused; pause is checked first)
 
