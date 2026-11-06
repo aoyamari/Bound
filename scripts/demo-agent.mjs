@@ -10,7 +10,7 @@
  *   2) Rejected — amount > max_per_tx
  *   3) Rejected — receiver not whitelisted
  *
- * Automatic negative test: the same key cannot native-transfer NEAR.
+  * Phases: demo (default), --paused-check (after owner pauses), --negative-only (FC-key limit).
  *
  * Fill env vars (see README / .env.example). Do not commit private keys.
  */
@@ -65,6 +65,23 @@ async function main() {
   const account = await (await connect({ networkId: CONFIG.network, keyStore, nodeUrl: 'https://rpc.testnet.near.org' })).account(CONFIG.agentId);
   console.log('Bound |', CONFIG.network, '|', CONFIG.agentId);
   console.log('Public policy:', await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_policy', args: {} }));
+  if (process.argv.includes('--paused-check')) {
+    const result = await account.functionCall({ contractId: CONFIG.contract, methodName: 'spend', args: { receiver: CONFIG.vendor, amount: CONFIG.amountOk, memo: 'paused-check' }, gas: '30000000000000', attachedDeposit: '0' });
+    const log = (result.receipts_outcome || []).flatMap(x => x.outcome.logs || []).find(x => x.includes('SpendRejected'));
+    if (!log || !log.includes('"reason":"paused"')) throw new Error(`Expected paused rejection; owner must pause first. ${log || ''}`);
+    console.log(`PASS: paused request rejected, no transfer: https://explorer.testnet.near.org/transactions/${result.transaction.hash}`);
+    return;
+  }
+  if (process.argv.includes('--negative-only')) {
+    await account.sendMoney(CONFIG.vendor, '1').then(() => { throw new Error('SECURITY FAILURE: direct transfer completed'); }).catch(error => {
+      if (['RequiresFullAccess', 'TransactionError', 'InvalidTxError', 'UntypedError'].includes(error.type)) {
+        console.log('PASS: native NEAR transfer blocked by Function Call key:', error.type);
+        return;
+      }
+      throw error;
+    });
+    return;
+  }
   const initialSpent = BigInt(await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_spent_today', args: {} }));
   const daily = BigInt((await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_policy', args: {} })).daily_limit);
   if (initialSpent + BigInt(CONFIG.amountOk) > daily) throw new Error('Insufficient daily headroom. Rerun after the UTC reset or configure a higher budget.');

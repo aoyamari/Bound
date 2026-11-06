@@ -18,4 +18,6 @@ The non-whitelist receiver `near-examples.testnet` is never paid; the owner acco
 
 Expected flow: `SpendAllowed` (0.1), `SpendRejected / over_max_per_tx` (0.3), `SpendRejected / not_whitelisted` (0.1). The script reads daily spending before and after and proves only allowed payments consume budget. It prints explorer tx hashes and runs `sendMoney` using the same key; NEAR rejects direct transfer because FC keys cannot transfer.
 
+After owner pauses: `npm run demo -- --paused-check`. For just the FC-key negative proof: `npm run demo -- --negative-only`.
+
 Requires `near-api-js`. Unit tests: `cargo test --manifest-path ../contracts/agent-guardian/Cargo.toml`. Reproducible accounts/deployment: root README and `DEV.md`.

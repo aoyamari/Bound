@@ -1,25 +1,41 @@
-# Frontend (placeholder)
+# Bound dashboard
 
-Minimal owner UI for Bound. Not implemented yet — build this after the contract tests are green and testnet deploy works.
+Polished read-only demo UI for **Bound** — *Autonomy, within bounds.*
 
-## What the UI should do
+Talks to the live NEAR testnet guardian via public RPC only. No backend. No wallet. No keys in the browser.
 
-1. **Connect owner wallet** (NEAR testnet).
-2. **Policy editor**
-   - Show `get_policy` (max_per_tx, daily_limit, paused, whitelist).
-   - Forms: `set_policy`, `add_to_whitelist` / `remove_from_whitelist`, `pause` / `unpause`.
-   - Deposit / top-up treasury; optional `withdraw`.
-3. **Allow / reject feed**
-   - Tail contract logs / indexer events for `SpendAllowed` and `SpendRejected`.
-   - Display reason strings (`over_max_per_tx`, `not_whitelisted`, `over_daily_limit`, `paused`, …).
-4. **Badge:** “Policy is public on-chain” + link to explorer contract + `get_policy` call.
-5. **Demo helper:** buttons that call `can_spend` dry-run before sending `spend` from a separate agent key (agent key should not live in the owner browser session).
+**Contract:** [`guardian.bound-aoyamari.testnet`](https://explorer.testnet.near.org/accounts/guardian.bound-aoyamari.testnet)  
+**RPC:** `https://rpc.testnet.near.org`  
+**Views used:** `get_policy`, `get_spent_today`, `can_spend`
 
-## Suggested stack
+## Run
 
-- Next.js + `@near-wallet-selector` + `near-api-js`, or a single static HTML page for the hackathon MVP.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## Non-goals
+Open **http://localhost:5173** (Vite binds `0.0.0.0:5173`).
 
-- Hosting agent private keys in the browser.
-- Cloning OutLayer’s TEE / encrypted-policy UX.
+Other scripts:
+
+```bash
+npm test          # unit tests (yocto helpers)
+npm run build     # production build → dist/
+npm run preview   # serve dist on :5173
+```
+
+## What you see
+
+- Giant typographic hero + **LIVE NEAR TESTNET** badge and explorer deep-link
+- Three live stat cards: max per payment, daily allowance, spent today
+- Architecture / live-simulate focus toggle
+- Three preconfigured dry-runs (real `can_spend` results):
+  1. `0.1 Ⓝ` → `vendor.bound-aoyamari.testnet` (expect allow)
+  2. `0.3 Ⓝ` → same vendor (expect `over_max_per_tx`; policy max is `0.25 Ⓝ`)
+  3. `0.1 Ⓝ` → `near-examples.testnet` (expect `not_whitelisted`)
+
+## Stack
+
+React 18 + Vite + TypeScript. Raw `fetch` to NEAR JSON-RPC — no `near-api-js`, no secrets.

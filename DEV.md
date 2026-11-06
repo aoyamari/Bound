@@ -24,6 +24,16 @@ All guardian private credentials stay outside tracked files, in `/home/box/.near
 
 Direct native transfer of 1 yoctoNEAR using the same agent key was attempted before these runs and rejected `RequiresFullAccess` by protocol. No treasury transfer to the intended recipient succeeded. `npm run demo` includes the same negative test. For the demo script (relative daily increment is validated), read `get_spent_today` before the run to ensure headroom; don't invent a fresh account counter.
 
+## Owner emergency stop
+
+- [Pause](https://explorer.testnet.near.org/transactions/DYAbRR83n3QRCYnFp8Ft3REGQSt9MrcygThDv7VDwA4B)
+- [Unpause](https://explorer.testnet.near.org/transactions/EzukxiKFGnP64zQkeozVwdNhZxHTNqJjXdwvXpkq4WDS)
+- While paused, legitimate whitelisted spending emitted `SpendRejected / paused`; use `npm run demo -- --paused-check` to assert it. Treasury was restored active.
+
+## Static dashboard hosting
+
+GitHub Pages builds `frontend/` and publishes the client-only dashboard. RPC is public read access; no keys enter the browser.
+
 ## State reads
 
 ```bash

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Demo agent skeleton for Bound",
+  "description": "Bound NEAR testnet spending-policy agent",
   "scripts": {
     "demo": "node demo-agent.mjs"
   },
