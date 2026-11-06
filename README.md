@@ -63,8 +63,8 @@ Guardian contract
 
 ```
 contracts/agent-guardian/   # Rust near-sdk contract + unit tests
-scripts/                    # Node demo agent skeleton (3 scenarios)
-frontend/                   # UI placeholder (policy editor + feed)
+scripts/                    # Live testnet agent + Script negative proof
+frontend/                   # Dashboard (in progress)
 HACKATHON.md                # Submit checklist + demo script
 ```
 
@@ -76,7 +76,7 @@ HACKATHON.md                # Submit checklist + demo script
 
 - Rust **1.88+** (repo includes `rust-toolchain.toml`; `rustup` will auto-select)
 - `cargo`
-- Node 18+ for the demo script (later)
+- Node 18+ for the testnet demo script
 
 ### Contract unit tests
 
@@ -97,6 +97,30 @@ cargo build --release --target wasm32-unknown-unknown
 > **Dependency note:** `Cargo.toml` pins `near-sdk` via **git tag `near-sdk-v5.17.2`** so this environment can fetch when crates.io API is flaky. On a normal network you may switch to `near-sdk = "5.17.2"` (or current 5.x) with `features = ["unit-testing"]` in `[dev-dependencies]`.
 
 ---
+
+
+## Verified testnet proof
+
+Guardian: [`guardian.bound-aoyamari.testnet`](https://explorer.testnet.near.org/accounts/guardian.bound-aoyamari.testnet). Treasury: ~5 testnet NEAR; max **0.25 NEAR/payment**, **0.5 NEAR/day**; whitelisted vendor `vendor.bound-aoyamari.testnet`.
+
+The agent's only key is allowed to call `spend`; the bootstrap full-access key was removed. All facts and setup details: [`DEV.md`](DEV.md).
+
+| Verification | On-chain result | Transaction |
+|---|---|---|
+| Whitelisted payment of 0.1 NEAR | `SpendAllowed` | [Open](https://explorer.testnet.near.org/transactions/3pNHTmanHQ8gPtnQNVeCLt7k4YuemMYNc9aTL6NtYoqR) |
+| 0.3 NEAR exceeds cap | `SpendRejected: over_max_per_tx` | [Open](https://explorer.testnet.near.org/transactions/B8p9RA7zqgARfrJ6g1k1mrPP1Mx63urtPfJ3po6V1Z4x) |
+| Unwhitelisted receiver | `SpendRejected: not_whitelisted` | [Open](https://explorer.testnet.near.org/transactions/CbaJYocRDNseff9iAtpchbtD8o6pcy6WvHQxssL3Mbn9) |
+
+Rejected attempts left `spent_today` unchanged at its cumulative 0.2 NEAR after this demo (one earlier allowed 0.1 payment explains the first half). `scripts/demo-agent.mjs` measures daily spending before/after to repeat this check. The negative direct-transfer test produced `RequiresFullAccess`.
+
+### Live policy read
+
+```bash
+near contract call-function as-read-only guardian.bound-aoyamari.testnet get_policy json-args '{}' network-config testnet now
+near account list-keys agent.bound-aoyamari.testnet network-config testnet now
+```
+
+Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for reproducible deployment. Frontend work is in `frontend/`.
 
 ## Do X → see Y (AI screener / judges)
 

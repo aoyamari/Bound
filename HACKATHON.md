@@ -25,10 +25,10 @@ Transparent on-chain spending policy for AI agents — complementary to OutLayer
 
 ## Submit checklist
 
-- [ ] Public GitHub repo
+- [x] Public GitHub repo
 - [ ] README with OutLayer table + Do X → see Y
-- [ ] `cargo test` green
-- [ ] Testnet deploy + example tx links
+- [x] `cargo test` green
+- [x] Testnet deploy + example tx links
 - [ ] Demo video 60–90s
 - [ ] Post on X tagging `@NEARProtocol` + `#NEARHackathon`
 - [ ] Form: NEAR wallet for prizes, repo URL, post link

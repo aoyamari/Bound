@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bound — demo agent skeleton
+ * Bound — live testnet demo agent
  *
  * Goal: call guardian.spend with an account that should ONLY have a
  * Function Call access key scoped to method `spend`.
@@ -10,7 +10,7 @@
  *   2) Rejected — amount > max_per_tx
  *   3) Rejected — receiver not whitelisted
  *
- * Extra (manual / separate script): prove the same key cannot native-transfer NEAR.
+ * Automatic negative test: the same key cannot native-transfer NEAR.
  *
  * Fill env vars (see README / .env.example). Do not commit private keys.
  */
@@ -22,113 +22,82 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function loadDotEnv() {
-  const p = resolve(__dirname, '.env');
-  if (!existsSync(p)) return;
-  for (const line of readFileSync(p, 'utf8').split('\n')) {
-    const t = line.trim();
-    if (!t || t.startsWith('#')) continue;
-    const i = t.indexOf('=');
-    if (i < 0) continue;
-    const k = t.slice(0, i).trim();
-    const v = t.slice(i + 1).trim();
-    if (!(k in process.env)) process.env[k] = v;
+  for (const file of ['.env', '.env.local']) {
+    const p = resolve(__dirname, file);
+    if (!existsSync(p)) continue;
+    for (const line of readFileSync(p, 'utf8').split('\n')) {
+      const t = line.trim();
+      if (!t || t.startsWith('#')) continue;
+      const i = t.indexOf('=');
+      if (i < 0) continue;
+      const k = t.slice(0, i).trim();
+      const v = t.slice(i + 1).trim();
+      if (!(k in process.env)) process.env[k] = v;
+    }
   }
 }
-
 loadDotEnv();
 
 const CONFIG = {
   network: process.env.NEAR_NETWORK || 'testnet',
-  contract: process.env.GUARDIAN_CONTRACT || '',
-  agentId: process.env.AGENT_ACCOUNT_ID || '',
-  agentKey: process.env.AGENT_PRIVATE_KEY || '',
-  vendor: process.env.VENDOR_ACCOUNT_ID || 'vendor.testnet',
-  scam: process.env.SCAM_ACCOUNT_ID || 'scam.testnet',
-  amountOk: process.env.AMOUNT_OK || '100000000000000000000000', // 0.1 NEAR
-  amountOverMax: process.env.AMOUNT_OVER_MAX || '2000000000000000000000000', // 2 NEAR
+  contract: required('GUARDIAN_CONTRACT'),
+  agentId: required('AGENT_ACCOUNT_ID'),
+  vendor: required('VENDOR_ACCOUNT_ID'),
+  scam: process.env.SCAM_ACCOUNT_ID || 'near-examples.testnet',
+  amountOk: process.env.AMOUNT_OK || '100000000000000000000000',
+  amountOverMax: process.env.AMOUNT_OVER_MAX || '300000000000000000000000',
 };
-
-function requireConfig() {
-  const missing = [];
-  if (!CONFIG.contract) missing.push('GUARDIAN_CONTRACT');
-  if (!CONFIG.agentId) missing.push('AGENT_ACCOUNT_ID');
-  if (!CONFIG.agentKey) missing.push('AGENT_PRIVATE_KEY');
-  if (missing.length) {
-    console.error('Missing env:', missing.join(', '));
-    console.error('Copy scripts/.env.example → scripts/.env and fill values.');
-    console.error('Also: npm install  # pulls near-api-js');
-    process.exit(1);
-  }
+function required(name) {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing ${name}; use .env.example and keep private keys in .env.local.`);
+  return value;
 }
-
-/**
- * TODO: wire near-api-js once credentials exist.
- *
- * Suggested shape (near-api-js v5+ — verify against installed docs):
- *
- *   import { connect, keyStores, KeyPair } from 'near-api-js';
- *   const keyStore = new keyStores.InMemoryKeyStore();
- *   await keyStore.setKey(CONFIG.network, CONFIG.agentId, KeyPair.fromString(CONFIG.agentKey));
- *   const near = await connect({ networkId: CONFIG.network, keyStore, nodeUrl: ... });
- *   const account = await near.account(CONFIG.agentId);
- *   await account.functionCall({
- *     contractId: CONFIG.contract,
- *     methodName: 'spend',
- *     args: { receiver, amount, memo },
- *     gas: '30000000000000',
- *     attachedDeposit: '0',
- *   });
- */
-async function callSpend(receiver, amountYocto, memo) {
-  console.log(`→ spend({ receiver: ${receiver}, amount: ${amountYocto}, memo: ${memo} })`);
-  // TODO: replace with real functionCall (see comment above).
-  throw new Error(
-    'TODO: connect near-api-js and call spend. Scaffold only — see scripts/README.md',
-  );
-}
-
-async function scenario(name, fn) {
-  console.log('\n===', name, '===');
-  try {
-    await fn();
-    console.log('Submitted. Check tx logs for SpendAllowed / SpendRejected.');
-  } catch (e) {
-    console.error('Scenario error:', e.message || e);
-  }
-}
-
 async function main() {
-  console.log('Bound — demo agent');
-  console.log('Network:', CONFIG.network);
-  requireConfig();
-  console.log('Contract:', CONFIG.contract);
-  console.log('Agent:', CONFIG.agentId);
+  const { connect, keyStores, KeyPair } = await import('near-api-js');
+  const keyStore = new keyStores.InMemoryKeyStore();
+  const keyPath = process.env.AGENT_KEY_FILE || resolve(__dirname, 'credentials/agent-fc-key.json');
+  if (process.env.AGENT_PRIVATE_KEY) {
+    await keyStore.setKey(CONFIG.network, CONFIG.agentId, KeyPair.fromString(process.env.AGENT_PRIVATE_KEY));
+  } else {
+    const k = JSON.parse(readFileSync(keyPath, 'utf8'));
+    await keyStore.setKey(CONFIG.network, CONFIG.agentId, KeyPair.fromString(k.private_key || k.secret_key));
+  }
+  const account = await (await connect({ networkId: CONFIG.network, keyStore, nodeUrl: 'https://rpc.testnet.near.org' })).account(CONFIG.agentId);
+  console.log('Bound |', CONFIG.network, '|', CONFIG.agentId);
+  console.log('Public policy:', await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_policy', args: {} }));
+  const initialSpent = BigInt(await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_spent_today', args: {} }));
+  const daily = BigInt((await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_policy', args: {} })).daily_limit);
+  if (initialSpent + BigInt(CONFIG.amountOk) > daily) throw new Error('Insufficient daily headroom. Rerun after the UTC reset or configure a higher budget.');
 
-  // Dynamic import so `node demo-agent.mjs` can still print help before npm install.
-  try {
-    await import('near-api-js');
-    console.log('near-api-js: available (wire TODO in callSpend)');
-  } catch {
-    console.warn('near-api-js not installed yet — run: npm install');
+  for (const [name, receiver, amount, expected] of [
+    ['allowed', CONFIG.vendor, CONFIG.amountOk, 'SpendAllowed'],
+    ['over-max', CONFIG.vendor, CONFIG.amountOverMax, 'SpendRejected'],
+    ['not-whitelisted', CONFIG.scam, CONFIG.amountOk, 'SpendRejected'],
+  ]) {
+    const result = await account.functionCall({ contractId: CONFIG.contract, methodName: 'spend', args: { receiver, amount, memo: `bound-${name}` }, gas: '30000000000000', attachedDeposit: '0' });
+    const log = (result.receipts_outcome || []).flatMap(x => x.outcome.logs || []).find(x => x.startsWith('EVENT_JSON:'));
+    if (!log) throw new Error(`Missing guardian event for ${name}`);
+    const event = JSON.parse(log.slice(11));
+    if (event.event !== expected) throw new Error(`Unexpected event for ${name}`);
+    console.log(name, JSON.stringify(event), `https://explorer.testnet.near.org/transactions/${result.transaction.hash}`);
   }
 
-  await scenario('1) ALLOW — whitelisted vendor, under max_per_tx', async () => {
-    await callSpend(CONFIG.vendor, CONFIG.amountOk, 'demo-allow');
-  });
+  const spent = BigInt(await account.viewFunction({ contractId: CONFIG.contract, methodName: 'get_spent_today', args: {} }));
+  const expectedSpent = initialSpent + BigInt(CONFIG.amountOk);
+  if (spent !== expectedSpent) throw new Error(`Wrong spent_today ${spent}, expected ${expectedSpent}`);
+  console.log('Only the approved spend increased daily usage:', spent.toString());
 
-  await scenario('2) REJECT — over max_per_tx', async () => {
-    await callSpend(CONFIG.vendor, CONFIG.amountOverMax, 'demo-over-max');
-  });
-
-  await scenario('3) REJECT — not whitelisted', async () => {
-    await callSpend(CONFIG.scam, CONFIG.amountOk, 'demo-scam');
-  });
-
-  console.log(`
-Next (manual FC-key proof):
-  With the SAME Function Call key, try a native transfer of 1 yoctoNEAR.
-  It must fail: FC keys cannot Transfer. That is the Guardian trust story.
-`);
+  try {
+    await account.sendMoney(CONFIG.vendor, '1');
+    throw new Error('SECURITY FAILURE: direct transfer completed');
+  } catch (error) {
+    if (error.message.startsWith('SECURITY FAILURE:')) throw error;
+    if (!['RequiresFullAccess', 'TransactionError', 'InvalidTxError', 'UntypedError'].includes(error.type)) throw error;
+    console.log('Direct native NEAR transfer blocked:', error.type);
+  }
+  console.log('PASS: Allowed payment + over-limit + non-whitelist + protocol transfer block.');
 }
-
-main();
+main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

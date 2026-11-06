@@ -1,33 +1,21 @@
-# Demo agent scripts
+# Testnet agent
 
-Node skeleton that exercises three `spend` scenarios against a deployed Guardian on NEAR testnet.
+`demo-agent.mjs` makes three real NEAR testnet transactions using an agent with a Function Call access key, then attempts one forbidden native NEAR transfer.
 
-## Setup
+## Run (repeat with a funded agent, within the daily allowance)
 
 ```bash
 cd scripts
-cp .env.example .env   # if present; or export vars below
 npm install
+cp .env.example .env.local
+# Add AGENT_PRIVATE_KEY=ed25519:... to .env.local (ignored by git).
+npm run demo
 ```
 
-### Env vars
+Default deployment and public settings are in `.env.example`. `AGENT_PRIVATE_KEY` is never included in the repository or frontend. Alternatively `AGENT_KEY_FILE` may point to an outside-repo NEAR credential JSON with a `private_key`.
 
-| Variable | Meaning |
-|---|---|
-| `NEAR_NETWORK` | `testnet` (default) |
-| `GUARDIAN_CONTRACT` | e.g. `guardian.you.testnet` |
-| `AGENT_ACCOUNT_ID` | account that holds the **FC key only** |
-| `AGENT_PRIVATE_KEY` | ed25519 private key for that FC key (never commit) |
-| `VENDOR_ACCOUNT_ID` | whitelisted receiver |
-| `SCAM_ACCOUNT_ID` | non-whitelisted receiver for reject demo |
-| `AMOUNT_OK` | yoctoNEAR under `max_per_tx` |
-| `AMOUNT_OVER_MAX` | yoctoNEAR over `max_per_tx` |
+The non-whitelist receiver `near-examples.testnet` is never paid; the owner account is **not** a demo agent. `AMOUNT_OK=100000000000000000000000` = 0.1 NEAR; `AMOUNT_OVER_MAX=300000000000000000000000` = 0.3 NEAR (exceeds the 0.25 cap).
 
-## Proof to capture for judges
+Expected flow: `SpendAllowed` (0.1), `SpendRejected / over_max_per_tx` (0.3), `SpendRejected / not_whitelisted` (0.1). The script reads daily spending before and after and proves only allowed payments consume budget. It prints explorer tx hashes and runs `sendMoney` using the same key; NEAR rejects direct transfer because FC keys cannot transfer.
 
-1. Allowed spend → `SpendAllowed` log.
-2. Over max → `SpendRejected` / `over_max_per_tx`.
-3. Bad receiver → `SpendRejected` / `not_whitelisted`.
-4. (Manual) Attempt native transfer with the same FC key → fails at protocol level.
-
-`demo-agent.mjs` still has TODOs for wiring credentials; fill env and complete the `near-api-js` connection blocks before the demo recording.
+Requires `near-api-js`. Unit tests: `cargo test --manifest-path ../contracts/agent-guardian/Cargo.toml`. Reproducible accounts/deployment: root README and `DEV.md`.
