@@ -12,7 +12,7 @@ cp .env.example .env.local
 npm run demo
 ```
 
-Default deployment and public settings are in `.env.example`. `AGENT_PRIVATE_KEY` is never included in the repository or frontend. Requires Node >=22.22.2 and NEAR SDK 7.4.0. Use `ed25519:`-prefixed secret strings in `.env.local`; no spaces. Alternatively `AGENT_KEY_FILE` may point to an outside-repo NEAR credential JSON with a `private_key`.
+Default deployment and public settings are in `.env.example`. `AGENT_PRIVATE_KEY` is never included in the repository or frontend. Requires Node >=22.22.2 and NEAR SDK 7.4.0. Use `ed25519:`-prefixed secret strings in `.env.local`; no spaces. Alternatively `AGENT_KEY_FILE` may point to a NEAR credential JSON containing `private_key` or `secret_key`; keep that file outside the tracked repo. With an `ed25519:` prefix, SDK 7 accepts the secret.
 
 The non-whitelist receiver `SCAM_ACCOUNT_ID` (only your verified testnet target) is never paid; the owner account is **not** a demo agent. `AMOUNT_OK=100000000000000000000000` = 0.1 NEAR; `AMOUNT_OVER_MAX=300000000000000000000000` = 0.3 NEAR (exceeds the 0.25 cap).
 

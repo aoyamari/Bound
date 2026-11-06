@@ -42,4 +42,4 @@ React 18 + Vite + TypeScript. Raw `fetch` to NEAR JSON-RPC — no `near-api-js`,
 
 ## Publish
 
-`npm run publish` test/builds and publishes `dist` to the repository's `gh-pages` branch. Do not publish during on-chain owner-admin operations; owner controls are only through documented NEAR CLI in this MVP.
+`npm run publish` tests/builds and publishes `dist` to the repository's `gh-pages` branch. Do not publish during on-chain owner-admin operations; owner controls are only through documented NEAR CLI in this MVP.

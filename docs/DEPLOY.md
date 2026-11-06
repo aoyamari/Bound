@@ -64,14 +64,25 @@ npm run demo -- --negative-only
 npm run demo -- --paused-check
 ```
 
-The script confirms:
+The script confirms (executed and verified with near-api-js 7.4 on NEAR testnet):
 - Allowed 0.1 NEAR transfer to whitelisted vendor;
 - 0.3 NEAR rejected over-max;
 - 0.1 NEAR to an unknown receiver rejected;
 - `spent_today` correct before and after, not hardcoded;
 - Native 1 yoctoNEAR transfer fails using the exact Function Call key.
 
-Agent `--paused-check` expects owner already paused and will return success only on `reason=paused`. Restore owner unpause manually with CLI; unsigned browser owner forms must not claim any mutation happened.
+Agent `--paused-check` expects owner already paused and will return success only on `reason=paused`. Restore owner unpause manually with CLI.
+
+CLI pause/unpause:
+
+```bash
+near contract call-function as-transaction guardian.YOUR_NAME.testnet pause json-args '{}' \
+  prepaid-gas '30 Tgas' attached-deposit '0 NEAR' sign-as YOUR_NAME.testnet \
+  network-config testnet sign-with-keychain send
+near contract call-function as-transaction guardian.YOUR_NAME.testnet unpause json-args '{}' \
+  prepaid-gas '30 Tgas' attached-deposit '0 NEAR' sign-as YOUR_NAME.testnet \
+  network-config testnet sign-with-keychain send
+```
 
 ## Storage & test notes
 

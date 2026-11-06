@@ -4,6 +4,8 @@
 **Tracks (pick both if form allows):** `security` + `agents`
 **Deadline:** 14 Nov 2026 · 23:59 UTC
 **Site:** https://nearhackathon.com/
+**Live dashboard:** https://aoyamari.github.io/Bound/
+**Repository:** https://github.com/aoyamari/Bound
 
 ## Positioning one-liner
 
@@ -26,7 +28,7 @@ Transparent on-chain spending policy for AI agents — complementary to OutLayer
 ## Submit checklist
 
 - [x] Public GitHub repo
-- [ ] README with OutLayer table + Do X → see Y
+- [x] README with OutLayer table + Do X → see Y
 - [x] `cargo test` green
 - [x] Testnet deploy + example tx links
 - [ ] Demo video 60–90s
