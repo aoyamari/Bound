@@ -9,7 +9,7 @@
 - Agent `agent.bound-aoyamari.testnet` (only `spend` on guardian permitted)
 - Whitelist `vendor.bound-aoyamari.testnet`
 - Config: 0.25 NEAR max payment / 0.5 NEAR per UTC day
-- Testnet treasury ~5 NEAR; deploy [transaction](https://explorer.testnet.near.org/transactions/GdqpWg8PvXefyA3Y4ShMo2d73fxFp5CaqovCs6MBWrmg)
+- Testnet treasury ~5 NEAR; deploy [transaction](https://explorer.testnet.near.org/transactions/GdqpWg8PvXefyA3Y4ShMo2d73fxFp5CaqovCs6MBWrmg). That transaction id is not a git commit. The wasm's NEP-330 `build_info` is null. See `docs/DEPLOY.md` for the source range and cargo-path check.
 - Add whitelist [transaction](https://explorer.testnet.near.org/transactions/4DfDaNBXAKtPHuzATaMnC6b3r6E2G1QWZSBB8FvgrtZh)
 - Added Function Call key [transaction](https://explorer.testnet.near.org/transactions/EodNEt68piFniETwQLxMKRaJDNK5bR5o6DDtreXEY639)
 - Deleted full-access bootstrap key [transaction](https://explorer.testnet.near.org/transactions/aWtyzmteNMx9Ss3y5f5gF1kC5CzMfQC2uqWeqDZQd7f)

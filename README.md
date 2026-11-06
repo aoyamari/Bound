@@ -120,7 +120,7 @@ near contract call-function as-read-only guardian.bound-aoyamari.testnet get_pol
 near account list-keys agent.bound-aoyamari.testnet network-config testnet now
 ```
 
-Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters and `docs/DEPLOY.md` for reproducible deployment. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) using a static `gh-pages` branch, no Actions workflow permission needed. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
+Install with `npm install -g near-cli-rs@latest`; contract needs Rust 1.88+. Run `cargo test --manifest-path contracts/agent-guardian/Cargo.toml` and follow `DEV.md` for live parameters. `docs/DEPLOY.md` records the deploy commands and the bytecode check: the live wasm matches the contract sources from `469b74b` through `31ab724` only when dependency paths use `/home/box/.cargo`, and that wasm's NEP-330 `build_info` is null. Dashboard lives in `frontend/` and deploys to [Bound live demo](https://aoyamari.github.io/Bound/) from the static `gh-pages` branch. The read-only dashboard fetches `get_policy` and `can_spend`; scenario cards are dry-run views, **not payments**. Owner controls are implemented through NEAR CLI only; no browser wallet or production deploy yet.
 
 ## Do X → see Y (AI screener / judges)
 
